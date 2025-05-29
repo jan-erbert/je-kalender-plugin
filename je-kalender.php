@@ -3,7 +3,7 @@
 Plugin Name: JE Kalender
 Plugin URI:  https://jan-erbert.de
 Description: Kalender-Shortcodes mit Google Calendar Integration und Antragssystem.
-Version:     1.0
+Version:     0.2.0
 Author:      Jan Erbert
 Author URI:  https://jan-erbert.de
 License:     GPLv2 oder neuer
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 require_once plugin_dir_path(__FILE__) . 'includes/functions.php';
 // Lade API-Loader nach vollständigem Laden von WordPress
-add_action('plugins_loaded', function() {
+add_action('plugins_loaded', function () {
     require_once plugin_dir_path(__FILE__) . 'includes/api-loader.php';
 });
 
@@ -28,36 +28,38 @@ require_once plugin_dir_path(__FILE__) . 'includes/backend-menu.php';
 
 // Bei Aktivierung: Tabelle anlegen & Rechte vergeben
 register_activation_hook(__FILE__, 'je_kalender_on_activation');
-function je_kalender_on_activation() {
+function je_kalender_on_activation()
+{
     require_once plugin_dir_path(__FILE__) . 'includes/install.php';
     je_kalender_create_table();
     je_kalender_add_custom_capabilities();
 }
 
 // JS-Dateien für Google Kalender Shortcodes einbinden
-function je_kalender_enqueue_scripts() {
+function je_kalender_enqueue_scripts()
+{
     // Prüfen, ob die Seite einen Kalender-Shortcode enthält
     if (is_page() || is_single()) {
         global $post;
-        
+
         // JS für den "google_calendar" Shortcode
         if (has_shortcode($post->post_content, 'google_calendar')) {
             wp_enqueue_script(
-                'je-kalender-google-calendar', 
-                plugin_dir_url(__FILE__) . 'assets/js/je-kalender.js', 
-                [], 
-                '1.0', 
+                'je-kalender-google-calendar',
+                plugin_dir_url(__FILE__) . 'assets/js/je-kalender.js',
+                [],
+                '1.0',
                 true
             );
         }
-        
+
         // JS für den "google_calendar_filtered" Shortcode
         if (has_shortcode($post->post_content, 'google_calendar_filtered')) {
             wp_enqueue_script(
-                'je-kalender-google-calendar-filtered', 
-                plugin_dir_url(__FILE__) . 'assets/js/je-kalender-filtered.js', 
-                [], 
-                '1.0', 
+                'je-kalender-google-calendar-filtered',
+                plugin_dir_url(__FILE__) . 'assets/js/je-kalender-filtered.js',
+                [],
+                '1.0',
                 true
             );
         }

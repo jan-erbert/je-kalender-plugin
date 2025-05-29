@@ -1,6 +1,42 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const calendarId = jeKalender.calendarId;
-    const apiKey = jeKalender.apiKey;
+    const calendarContainer = document.getElementById("je-google-calendar");
+    if (!calendarContainer) return;
+
+    const calendarId = calendarContainer.getAttribute("data-calendar-id");
+    const apiKey = typeof JEKalenderData !== "undefined" ? JEKalenderData.apiKey : null;
+    const maxResults = calendarContainer.getAttribute("data-max") || 125;
+
+    // Dynamisch DOM-Elemente erzeugen
+    calendarContainer.innerHTML = `
+        <h2>📅 Nächste Events</h2>
+
+         <div class="calendar-filters" style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <label for="event-search" style="display: flex; align-items: center; gap: 6px;">
+            🔍
+            <input type="text" id="event-search" placeholder="Nach Event suchen..." style="flex: 1; min-width: 200px;">
+        </label>
+
+        <label for="category-filter" style="display: flex; align-items: center; gap: 6px;">
+            📁
+            <select id="category-filter">
+                <option value="Alle">Alle</option>
+            </select>
+        </label>
+
+        <label class="competition-filter">
+            <input type="checkbox" id="competition-checkbox"> Nur Wettkämpfe anzeigen
+        </label>
+
+    </div>
+
+        <ul id="events"></ul>
+
+        <div id="pagination">
+            <button id="prev-page" disabled>⬅️ Zurück</button>
+            <span id="page-info"></span>
+            <button id="next-page">Weiter ➡️</button>
+        </div>
+    `;
 
     const eventList = document.getElementById("events");
     const categoryFilter = document.getElementById("category-filter");
@@ -23,29 +59,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const eventsPerPage = 15;
 
     async function fetchEvents() {
-        const cacheKey = "je_kalender_events";
-        const cacheExpiry = 5 * 60 * 1000;
-
-        const cached = sessionStorage.getItem(cacheKey);
-        const cacheTime = sessionStorage.getItem(cacheKey + "_time");
-
-        if (cached && cacheTime && (Date.now() - cacheTime) < cacheExpiry) {
-            const data = JSON.parse(cached);
-            processEvents(data);
-            return;
-        }
-
-        const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=${apiKey}&timeMin=${new Date().toISOString()}&orderBy=startTime&singleEvents=true&maxResults=125`;
+        const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?key=${apiKey}&timeMin=${new Date().toISOString()}&orderBy=startTime&singleEvents=true&maxResults=${maxResults}`;
 
         try {
             const response = await fetch(url);
             const data = await response.json();
 
-            if (data.items) {
-                sessionStorage.setItem(cacheKey, JSON.stringify(data.items));
-                sessionStorage.setItem(cacheKey + "_time", Date.now());
+            if (data.items && data.items.length > 0) {
                 processEvents(data.items);
-                document.getElementById("je-google-calendar").querySelector("p").remove();
             } else {
                 eventList.innerHTML = "<li>❌ Keine kommenden Events gefunden.</li>";
             }
@@ -57,19 +78,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function processEvents(events) {
         allEvents = events.map(event => {
-            if (!event.start || (!event.start.dateTime && !event.start.date)) {
-                return null;
-            }
+            if (!event.start || (!event.start.dateTime && !event.start.date)) return null;
+
             const title = event.summary || "";
             let description = event.description || "";
             const isAllDay = !event.start.dateTime;
             const startDate = new Date(event.start.dateTime || event.start.date);
             const location = event.location || "";
+
             const { categories, sanitizedDesc } = extractCategories(description);
             description = sanitizedDesc;
 
-            return { title, description, startDate, location, categories, isAllDay };
-        }).filter(ev => ev !== null);
+            return {
+                title,
+                description,
+                startDate,
+                location,
+                categories: Array.isArray(categories) ? categories : [],
+                isAllDay
+            };
+        }).filter(e => e !== null);
 
         if (allEvents.length === 0) {
             eventList.innerHTML = "<li>❌ Keine kommenden Events gefunden.</li>";
@@ -87,27 +115,25 @@ document.addEventListener("DOMContentLoaded", function () {
         let sanitizedText = text;
 
         while ((match = bracketRegex.exec(text)) !== null) {
-            let bracketContent = match[1];
-            bracketContent.split(",").forEach(cat => {
-                let catTrimmed = cat.trim().toLowerCase();
-                const validCatOriginal = validCategories.find(valid => valid.toLowerCase() === catTrimmed);
-                if (validCatOriginal) {
-                    finalCategories.push(validCatOriginal);
+            match[1].split(",").forEach(cat => {
+                const clean = cat.trim().toLowerCase();
+                const matchOriginal = validCategories.find(valid => valid.toLowerCase() === clean);
+                if (matchOriginal) {
+                    finalCategories.push(matchOriginal);
+                    allCategories.add(matchOriginal);
                 }
             });
         }
 
         sanitizedText = sanitizedText.replace(bracketRegex, "").trim();
-        finalCategories.forEach(cat => allCategories.add(cat));
-
         return { categories: finalCategories, sanitizedDesc: sanitizedText };
     }
 
     function updateCategoryDropdown() {
-        allCategories.forEach(category => {
+        allCategories.forEach(cat => {
             const option = document.createElement("option");
-            option.value = category;
-            option.textContent = category;
+            option.value = cat;
+            option.textContent = cat;
             categoryFilter.appendChild(option);
         });
 
@@ -119,18 +145,12 @@ document.addEventListener("DOMContentLoaded", function () {
     function filterAndRenderEvents() {
         const selectedCategory = categoryFilter.value;
         const searchQuery = searchInput.value.toLowerCase();
-        const onlyShowCompetition = competitionCheckbox.checked;
+        const onlyCompetition = competitionCheckbox.checked;
 
         filteredEvents = allEvents.filter(event => {
-            if (selectedCategory !== "Alle" && !event.categories.includes(selectedCategory)) {
-                return false;
-            }
-            if (onlyShowCompetition && !event.categories.includes("Wettkampf")) {
-                return false;
-            }
-            if (searchQuery && !event.title.toLowerCase().includes(searchQuery)) {
-                return false;
-            }
+            if (selectedCategory !== "Alle" && !event.categories.includes(selectedCategory)) return false;
+            if (onlyCompetition && !event.categories.includes("Wettkampf")) return false;
+            if (searchQuery && !event.title.toLowerCase().includes(searchQuery)) return false;
             return true;
         });
 
@@ -141,45 +161,49 @@ document.addEventListener("DOMContentLoaded", function () {
     function renderEvents() {
         eventList.innerHTML = "";
 
-        const startIndex = (currentPage - 1) * eventsPerPage;
-        const paginatedEvents = filteredEvents.slice(startIndex, startIndex + eventsPerPage);
+        const start = (currentPage - 1) * eventsPerPage;
+        const paginated = filteredEvents.slice(start, start + eventsPerPage);
 
-        paginatedEvents.forEach((event, index) => {
-            const eventElement = document.createElement("li");
-            eventElement.className = "event-item";
+        paginated.forEach((event, index) => {
+            const eventEl = document.createElement("li");
+            eventEl.className = "event-item";
 
-            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-            let formattedDate = event.startDate.toLocaleDateString('de-DE', options);
-
+            const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            let formattedDate = event.startDate.toLocaleDateString('de-DE', dateOptions);
             if (!event.isAllDay) {
                 formattedDate += ` - ${event.startDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr`;
             }
 
-            eventElement.innerHTML = `
+            eventEl.innerHTML = `
                 <div class="event-header" data-index="${index}">
-                    <strong>${event.title}</strong><br>
-                    📅 ${formattedDate}
+                    <strong>${event.title}</strong><br>📅 ${formattedDate}
                 </div>
-                <div class="event-details" id="event-details-${index}" style="display: none;">
+                <div class="event-details" id="event-details-${index}" style="display:none;">
                     <p><strong>🔹 Kategorie:</strong> ${event.categories.join(", ")}</p>
                     ${event.description ? `<p><strong>📝 Beschreibung:</strong><br>${event.description}</p>` : ""}
-                    ${event.location ? `<p><strong>📍 Standort:</strong> ${event.location}</p>` : ""}
+                    ${event.location ? `<p><strong>📍 Standort:</strong> ${event.location}</p><div class="event-map" id="map-${index}"></div>` : ""}
                 </div>
             `;
 
-            eventList.appendChild(eventElement);
+            eventList.appendChild(eventEl);
+
+            if (event.location) {
+                setTimeout(() => {
+                    geocodeAddress(event.location, "map-" + index);
+                }, 300);
+            }
         });
 
-        addEventClickHandlers();
+        attachToggles();
         updatePagination();
     }
 
-    function addEventClickHandlers() {
+    function attachToggles() {
         document.querySelectorAll(".event-header").forEach(header => {
             header.addEventListener("click", function () {
-                const index = this.getAttribute("data-index");
-                const details = document.getElementById(`event-details-${index}`);
-                details.style.display = details.style.display === "none" ? "block" : "none";
+                const i = this.getAttribute("data-index");
+                const box = document.getElementById("event-details-" + i);
+                box.style.display = box.style.display === "none" ? "block" : "none";
             });
         });
     }
@@ -191,19 +215,52 @@ document.addEventListener("DOMContentLoaded", function () {
         nextPageBtn.disabled = (currentPage >= totalPages);
     }
 
-    prevPageBtn.addEventListener("click", function () {
+    prevPageBtn.addEventListener("click", () => {
         if (currentPage > 1) {
             currentPage--;
             renderEvents();
         }
     });
 
-    nextPageBtn.addEventListener("click", function () {
+    nextPageBtn.addEventListener("click", () => {
         if (currentPage < Math.ceil(filteredEvents.length / eventsPerPage)) {
             currentPage++;
             renderEvents();
         }
     });
 
+    async function geocodeAddress(address, mapId) {
+        try {
+            const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`);
+            const data = await res.json();
+    
+            if (data.status !== "OK") {
+                document.getElementById(mapId).innerHTML =
+                    "<p style='color:red;'>⚠️ Adresse nicht gefunden.</p>";
+                return;
+            }
+    
+            const { lat, lng } = data.results[0].geometry.location;
+            const map = new google.maps.Map(document.getElementById(mapId), {
+                center: { lat, lng },
+                zoom: 15,
+            });
+    
+            // 📦 Lade Marker-Bibliothek asynchron
+            const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+    
+            new AdvancedMarkerElement({
+                map,
+                position: { lat, lng },
+            });
+    
+        } catch (err) {
+            console.error("Geocoding-Fehler:", err);
+            document.getElementById(mapId).innerHTML =
+                "<p style='color:red;'>⚠️ Karte konnte nicht geladen werden.</p>";
+        }
+    }
+    
+    
     fetchEvents();
 });
