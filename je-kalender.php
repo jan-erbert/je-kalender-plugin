@@ -3,7 +3,7 @@
 Plugin Name: JE Kalender
 Plugin URI:  https://jan-erbert.de
 Description: Kalender-Shortcodes mit Google Calendar Integration und Antragssystem.
-Version:     0.2.0
+Version:     0.2.1
 Author:      Jan Erbert
 Author URI:  https://jan-erbert.de
 License:     GPLv2 oder neuer
@@ -38,33 +38,57 @@ function je_kalender_on_activation()
 // JS-Dateien für Google Kalender Shortcodes einbinden
 function je_kalender_enqueue_scripts()
 {
-    // Prüfen, ob die Seite einen Kalender-Shortcode enthält
-    if (is_page() || is_single()) {
-        global $post;
+    if (is_admin()) return;
 
-        // JS für den "google_calendar" Shortcode
-        if (has_shortcode($post->post_content, 'google_calendar')) {
-            wp_enqueue_script(
-                'je-kalender-google-calendar',
-                plugin_dir_url(__FILE__) . 'assets/js/je-kalender.js',
-                [],
-                '1.0',
-                true
-            );
-        }
+    global $post;
+    if (!isset($post->post_content)) return;
 
-        // JS für den "google_calendar_filtered" Shortcode
-        if (has_shortcode($post->post_content, 'google_calendar_filtered')) {
-            wp_enqueue_script(
-                'je-kalender-google-calendar-filtered',
-                plugin_dir_url(__FILE__) . 'assets/js/je-kalender-filtered.js',
-                [],
-                '1.0',
-                true
-            );
-        }
+    $api_key = je_get_google_maps_api_key();
+    $enqueue_common = false;
+
+    if (has_shortcode($post->post_content, 'google_calendar')) {
+        wp_enqueue_script(
+            'je-kalender-google-calendar',
+            plugin_dir_url(__FILE__) . 'assets/js/je-kalender.js',
+            [],
+            '1.0',
+            true
+        );
+
+        // Lokalisierung für JS (Maps API Key)
+        wp_localize_script('je-kalender-google-calendar', 'JEKalenderData', [
+            'apiKey' => esc_attr($api_key),
+        ]);
+
+        $enqueue_common = true;
+    }
+
+    if (has_shortcode($post->post_content, 'google_calendar_filtered')) {
+        wp_enqueue_script(
+            'je-kalender-google-calendar-filtered',
+            plugin_dir_url(__FILE__) . 'assets/js/je-kalender-filtered.js',
+            [],
+            '1.0',
+            true
+        );
+
+        wp_localize_script('je-kalender-google-calendar-filtered', 'JEKalenderDataFiltered', [
+            'apiKey' => esc_attr($api_key),
+        ]);
+
+        $enqueue_common = true;
+    }
+
+    if ($enqueue_common) {
+        wp_enqueue_style(
+            'je-kalender-style',
+            plugin_dir_url(__FILE__) . 'assets/css/google-calendar.css',
+            [],
+            '1.0'
+        );
     }
 }
+
 add_action('wp_enqueue_scripts', 'je_kalender_enqueue_scripts');
 
 
