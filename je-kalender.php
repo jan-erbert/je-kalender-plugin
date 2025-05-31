@@ -27,6 +27,7 @@ function je_kalender_enqueue_scripts()
         true
     );
 
+
     wp_enqueue_style(
         'je-kalender-css',
         plugin_dir_url(__FILE__) . 'google-calendar.css',
