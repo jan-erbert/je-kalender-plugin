@@ -21,5 +21,10 @@ function je_kalender_get_calendar_id()
 
 function je_get_google_maps_api_key()
 {
-    return defined('JE_KALENDER_GOOGLE_MAPS_API_KEY') ? JE_KALENDER_GOOGLE_MAPS_API_KEY : '';
+    return defined('JE_GOOGLE_MAPS_API_KEY') ? JE_GOOGLE_MAPS_API_KEY : '';
+}
+
+function je_get_google_map_id()
+{
+    return defined('JE_GOOGLE_MAP_ID') ? JE_GOOGLE_MAP_ID : '';
 }

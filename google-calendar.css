@@ -78,7 +78,7 @@
 }
 
 .event-map {
-    height: 250px;
+    height: 210px;
     width: 100%;
     margin-top: 10px;
     border-radius: 6px;
@@ -164,4 +164,23 @@
     border: 1px solid #ddd;
     border-radius: 6px;
     background: #f9f9f9;
+}
+
+/* Leaflet-Kartencontainer korrekt darstellen */
+.leaflet-container {
+    width: 100%;
+    z-index: 0;
+}
+
+.event-map .consent-map-button {
+    background: #0073aa;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.event-map .consent-map-button:hover {
+    background: #005f8d;
 }

@@ -1,0 +1,22 @@
+echo ".DS_Store
+node_modules/
+.vscode/
+vendor/
+*.log
+*.zip
+*.bak
+*.tmp
+*.swp
+.idea/
+.env
+composer.lock
+.env.local
+vendor/
+.wp-env.json
+*.sublime-project
+*.sublime-workspace
+.je-calendar-build/
+*.log
+*.cache
+je-kalender/.env
+" > .gitignore
