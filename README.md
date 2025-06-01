@@ -10,7 +10,7 @@
 
 ## 📋 Beschreibung
 
-**JE Kalender** ist ein WordPress-Plugin zur einfachen Einbindung eines öffentlichen Google Kalenders auf deiner Webseite – ergänzt um eine optisch ansprechende Eventliste mit Filter- und Kartendarstellung via OpenStreetMap (Leaflet).
+**JE Kalender** ist ein WordPress-Plugin zur einfachen Einbindung eines öffentlichen Google Kalenders auf deiner Webseite – ergänzt um eine optisch ansprechende Eventliste mit Filter- und Kartendarstellung via OpenStreetMap (Leaflet) oder optional Google Geocoding.
 
 Ideal für Vereine, Organisationen oder Gruppen, die Veranstaltungen auf einfache Weise veröffentlichen möchten.
 
@@ -22,12 +22,14 @@ Ideal für Vereine, Organisationen oder Gruppen, die Veranstaltungen auf einfach
 - 🔍 Suchfunktion & Kategoriefilter
 - 🗂 Unterstützung von Event-Kategorien via [Kategorie1, Kategorie2]
 - 🗺 Leaflet-Integration für Kartenanzeige (OpenStreetMap)
+- 🗺 Alternativ: Google Geocoding API für präzisere Standortauflösung
 - 🔐 Datenschutzkonforme Karteneinbindung mit Nutzer-Zustimmung
 - 📱 Responsives Design
 - 🛠 Admin-Seite mit Einstellung für:
   - Google Kalender-ID
   - Google API Key (für Kalenderdaten)
-  - OpenCage API Key (für Geocoding / Karten)
+  - Wahl zwischen OpenCage oder Google Geocoding
+  - Je nach Auswahl: API Key für OpenCage oder Google Geocoding
 - 🔧 Fallback über `wp-config.php` für API Keys
 
 ---
@@ -55,7 +57,7 @@ Ideal für Vereine, Organisationen oder Gruppen, die Veranstaltungen auf einfach
 ## 🗺 Kartenanzeige
 
 Die Standort-Karten werden nur geladen, wenn ein Event geöffnet wird und der Nutzer aktiv zustimmt.  
-Dazu wird OpenCage Geocoding verwendet (API Key erforderlich).
+Je nach Auswahl im Backend erfolgt das Geocoding über **OpenCage** (kostenlos) oder **Google Maps Geocoding API** (deutlich präziser, ggf. kostenpflichtig -> Anfragen Limit beachten!).
 
 ---
 
@@ -63,6 +65,7 @@ Dazu wird OpenCage Geocoding verwendet (API Key erforderlich).
 
 - ⏳ Fallback bei fehlgeschlagenem Geocoding (Google Maps-Link?)
 - ⏳ Gutenberg Block für Kalender
+- ⏳ Caching von Geokoordinaten zur Performance-Optimierung
 
 ---
 

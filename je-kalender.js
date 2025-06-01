@@ -10,7 +10,7 @@ function createConsentBox(mapId, onAccept) {
 
     container.innerHTML = `
         <div style="border: 1px solid #ccc; padding: 16px; background: #f9f9f9; border-radius: 6px;">
-            <p>🛡️ Zur Anzeige der Karte werden Daten von <strong>OpenStreetMap</strong> geladen. Dabei können personenbezogene Daten (z. B. IP-Adresse) übertragen werden.</p>
+            <p>🛡️ Zur Anzeige der Karte werden Daten von <strong>${provider === "google" ? "Google Maps" : "OpenStreetMap"}</strong> geladen. Dabei können personenbezogene Daten (z. B. IP-Adresse) übertragen werden.</p>
             <button class="consent-map-button" style="margin-top: 10px;">Karte anzeigen</button>
         </div>
     `;
@@ -24,17 +24,41 @@ function createConsentBox(mapId, onAccept) {
 
 
 async function geocodeAddress(address, mapId, geoKey) {
+    const provider = typeof JEKalenderData !== "undefined" ? JEKalenderData.geocoder : "opencage";
+    const googleKey = typeof JEKalenderData !== "undefined" ? JEKalenderData.googleGeocodeKey : null;
+
+    console.log("📍 [Geocoding] Provider:", provider);
+    console.log("📍 [Geocoding] Adresse:", address);
+
+    let lat, lng;
 
     try {
-        const res = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(address)}&key=${geoKey}`);
-        const data = await res.json();
+        if (provider === "google") {
+            const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleKey}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            
+            console.log("📦 [Geocoding] API-Antwort:", data);
 
-        if (!data.results || data.results.length === 0) {
-            document.getElementById(mapId).innerHTML = "<p style='color:red;'>⚠️ Adresse nicht gefunden.</p>";
-            return;
+            if (data.status !== "OK" || !data.results || data.results.length === 0) {
+                throw new Error("Google Maps konnte die Adresse nicht finden.");
+            }
+
+            lat = data.results[0].geometry.location.lat;
+            lng = data.results[0].geometry.location.lng;
+
+        } else {
+            const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(address)}&key=${geoKey}`;
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (!data.results || data.results.length === 0) {
+                throw new Error("OpenCage konnte die Adresse nicht finden.");
+            }
+
+            lat = data.results[0].geometry.lat;
+            lng = data.results[0].geometry.lng;
         }
-
-        const { lat, lng } = data.results[0].geometry;
 
         createConsentBox(mapId, () => {
             const map = L.map(mapId).setView([lat, lng], 15);
@@ -51,6 +75,7 @@ async function geocodeAddress(address, mapId, geoKey) {
         document.getElementById(mapId).innerHTML = "<p style='color:red;'>⚠️ Karte konnte nicht geladen werden.</p>";
     }
 }
+
 
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -253,9 +278,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     if (wasHidden && mapContainer && !mapContainer.classList.contains("map-loaded")) {
                         // Nur beim ersten Öffnen laden
-                        const locationText = mapContainer?.parentElement?.querySelector("p strong + br")?.nextSibling?.textContent?.trim()
-                            || mapContainer?.previousElementSibling?.textContent?.trim()
-                            || "";
+                        let locationText = "";
+                        const paragraphs = box.querySelectorAll("p");
+                        paragraphs.forEach(p => {
+                            if (p.textContent.startsWith("📍 Standort:")) {
+                                locationText = p.textContent.replace("📍 Standort:", "").trim();
+                            }
+                        });
                         if (locationText) {
                             geocodeAddress(locationText, `map-${i}`, geoKey);
                             mapContainer.classList.add("map-loaded"); // Nur einmal pro Map
@@ -393,7 +422,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     box.style.display = wasHidden ? "block" : "none";
 
                     if (wasHidden && mapContainer && !mapContainer.classList.contains("map-loaded")) {
-                        const locationText = mapContainer?.previousElementSibling?.textContent?.trim() || "";
+                        let locationText = "";
+                        const paragraphs = box.querySelectorAll("p");
+                        paragraphs.forEach(p => {
+                            if (p.textContent.startsWith("📍 Standort:")) {
+                                locationText = p.textContent.replace("📍 Standort:", "").trim();
+                            }
+                        });
                         if (locationText) {
                             geocodeAddress(locationText, `map-${i}`, geoKey);
                             mapContainer.classList.add("map-loaded");
