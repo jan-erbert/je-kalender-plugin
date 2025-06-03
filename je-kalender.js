@@ -103,6 +103,10 @@ document.addEventListener("DOMContentLoaded", function () {
         "wettkampf", "sportabzeichen"
     ];
 
+    function capitalizeWords(str) {
+        return str.replace(/\b\w/g, l => l.toUpperCase());
+    }
+
     function extractCategories(text) {
         const bracketRegex = /\[([^\]]+)\]/gi;
         let match;
@@ -206,7 +210,7 @@ document.addEventListener("DOMContentLoaded", function () {
             allCategories.forEach(cat => {
                 const option = document.createElement("option");
                 option.value = cat;
-                option.textContent = cat;
+                option.textContent = capitalizeWords(cat);
                 categoryFilter.appendChild(option);
             });
 
@@ -252,7 +256,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <strong>${event.title}</strong><br>📅 ${formattedDate}
                     </div>
                     <div class="event-details" id="event-details-${index}" style="display:none;">
-                        <p><strong>🔹 Kategorie:</strong> ${event.categories.join(", ")}</p>
+                        <p><strong>🔹 Kategorie:</strong> ${event.categories.map(capitalizeWords).join(", ")}</p>
                         ${event.description ? `<p><strong>📝 Beschreibung:</strong><br>${event.description}</p>` : ""}
                         ${event.location ? `<p><strong>📍 Standort:</strong> ${event.location}</p><div class="event-map" id="map-${index}"></div>` : ""}
                     </div>
@@ -398,7 +402,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <strong>📌 ${ev.title}</strong><br>📅 ${dateStr}
                     </div>
                     <div class="event-details" id="event-details-${i}" style="display:none;">
-                        ${ev.categories.length ? `<p><strong>🔹 Kategorie:</strong> ${ev.categories.join(", ")}</p>` : ""}
+                        ${ev.categories.length ? `<p><strong>🔹 Kategorie:</strong> ${ev.categories.map(capitalizeWords).join(", ")}</p>` : ""}
                         ${ev.description ? `<p><strong>📝 Beschreibung:</strong><br>${ev.description}</p>` : ""}
                         ${ev.location ? `<p><strong>📍 Standort:</strong> ${ev.location}</p><div class="event-map" id="map-${i}"></div>` : ""}
                     </div>

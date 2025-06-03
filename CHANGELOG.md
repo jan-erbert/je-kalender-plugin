@@ -2,6 +2,13 @@
 
 Alle Änderungen am Plugin „JE Kalender“ werden in diesem Dokument aufgeführt.
 
+## [1.0.3] - 2025-06-03
+
+### Geändert
+
+- Die Anzeige der Event-Kategorien erfolgt jetzt mit korrekter Großschreibung (z. B. "Wettkampf, Erwachsene" statt "wettkampf, erwachsene")
+- Die Filter- und Matchinglogik bleibt dabei weiterhin kleinschreibungsunabhängig (case-insensitive)
+
 ## [1.0.2] – 2025-06-01
 
 ### Geändert

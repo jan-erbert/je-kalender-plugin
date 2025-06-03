@@ -3,7 +3,7 @@
 /**
  * Plugin Name: JE Kalender
  * Description: Google Kalender Integration mit Leaflet-Kartenanzeige für Veranstaltungen.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Jan Erbert
  */
 
