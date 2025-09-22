@@ -1,27 +1,47 @@
-function createConsentBox(mapId, onAccept) {
-    const container = document.getElementById(mapId);
-    if (!container) return;
-
-    const consentGiven = localStorage.getItem("jeKalender_map_consent") === "true";
-    if (consentGiven) {
-        onAccept();
-        return;
-    }
-
-    container.innerHTML = `
-        <div style="border: 1px solid #ccc; padding: 16px; background: #f9f9f9; border-radius: 6px;">
-            <p>🛡️ Zur Anzeige der Karte werden Daten von <strong>${provider === "google" ? "Google Maps" : "OpenStreetMap"}</strong> geladen. Dabei können personenbezogene Daten (z. B. IP-Adresse) übertragen werden.</p>
-            <button class="consent-map-button" style="margin-top: 10px;">Karte anzeigen</button>
-        </div>
-    `;
-
-    container.querySelector(".consent-map-button").addEventListener("click", () => {
-        localStorage.setItem("jeKalender_map_consent", "true");
-        container.innerHTML = "";
-        onAccept();
-    });
+// ---- Legacy-Fallbacks (alte Codepfade absichern) ----
+window.JEKalenderData = window.JEKalenderData || {};
+// Falls Altcode ein globales "provider" erwartet:
+if (typeof window.provider === "undefined") {
+  window.provider = window.JEKalenderData.geocoder || "opencage";
 }
 
+// harden + backward-compat: define both chosenProvider AND provider (alias)
+function createConsentBox(mapId, providerName, onAccept) {
+  const container = document.getElementById(mapId);
+  if (!container) return;
+
+  const chosenProvider =
+    (typeof providerName === "string" && providerName) ||
+    (window.JEKalenderData && window.JEKalenderData.geocoder) ||
+    (typeof window.provider !== "undefined" && window.provider) ||
+    "opencage";
+
+  // Alias für Altcode, der "provider" erwartet:
+  const provider = chosenProvider;
+  const providerLabel = chosenProvider === "google" ? "Google Maps" : "OpenStreetMap";
+
+  const consentGiven = localStorage.getItem("jeKalender_map_consent") === "true";
+  if (consentGiven) {
+    try { onAccept && onAccept(); } catch (e) { console.error(e); }
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="border:1px solid #ccc;padding:16px;background:#f9f9f9;border-radius:6px;">
+      <p>🛡️ Zur Anzeige der Karte werden Daten von <strong>${providerLabel}</strong> geladen.</p>
+      <button class="consent-map-button" style="margin-top:10px;">Karte anzeigen</button>
+    </div>
+  `;
+
+  const btn = container.querySelector(".consent-map-button");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      localStorage.setItem("jeKalender_map_consent", "true");
+      container.innerHTML = "";
+      try { onAccept && onAccept(); } catch (e) { console.error(e); }
+    });
+  }
+}
 
 async function geocodeAddress(address, mapId, geoKey) {
     const provider = typeof JEKalenderData !== "undefined" ? JEKalenderData.geocoder : "opencage";
@@ -60,7 +80,13 @@ async function geocodeAddress(address, mapId, geoKey) {
             lng = data.results[0].geometry.lng;
         }
 
-        createConsentBox(mapId, () => {
+        createConsentBox(mapId, provider, () => {
+            if (typeof L === "undefined" || !L.map) {
+                console.error("Leaflet wurde nicht geladen. Prüfe wp_enqueue_script-Reihenfolge oder Blocker.");
+                const el = document.getElementById(mapId);
+                if (el) el.innerHTML = "<p style='color:red;'>⚠️ Karte konnte nicht geladen werden (Leaflet fehlt).</p>";
+                return;
+            }
             const map = L.map(mapId).setView([lat, lng], 15);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap',
@@ -78,6 +104,8 @@ async function geocodeAddress(address, mapId, geoKey) {
 
 
 document.addEventListener("DOMContentLoaded", function () {
+    console.log("👤 Ist JEKalenderData verfügbar?", typeof JEKalenderData !== "undefined");
+    console.log("🔑 JEKalenderData.googleKey:", JEKalenderData?.googleKey);
 
     const container = document.getElementById("je-google-calendar") || document.getElementById("gcal-filtered-events");
     if (!container) return;
@@ -450,3 +478,5 @@ document.addEventListener("DOMContentLoaded", function () {
         fetchFilteredEvents();
     }
 });
+// ---- Hard Override: stelle sicher, dass unsere Version die aktive ist ----
+window.createConsentBox = createConsentBox;

@@ -2,6 +2,12 @@
 
 Alle Änderungen am Plugin „JE Kalender“ werden in diesem Dokument aufgeführt.
 
+## [1.0.4] - 2025-09-22
+
+### Geändert
+
+- Die Anzeige der Karte klappt nun korrekt auf Mobilen Endgeräten und Firefox
+
 ## [1.0.3] - 2025-06-03
 
 ### Geändert

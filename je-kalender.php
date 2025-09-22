@@ -3,7 +3,7 @@
 /**
  * Plugin Name: JE Kalender
  * Description: Google Kalender Integration mit Leaflet-Kartenanzeige für Veranstaltungen.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: Jan Erbert
  */
 
@@ -22,11 +22,10 @@ function je_kalender_enqueue_scripts()
     wp_enqueue_script(
         'je-kalender',
         plugin_dir_url(__FILE__) . 'je-kalender.js',
-        [],
+        ['jquery', 'leaflet'],
         filemtime(plugin_dir_path(__FILE__) . 'je-kalender.js'),
         true
     );
-
 
     wp_enqueue_style(
         'je-kalender-css',
