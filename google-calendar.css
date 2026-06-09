@@ -1,7 +1,8 @@
 /* Modernisiertes Google Calendar Design */
 
 /* Gesamtlayout */
-#je-google-calendar {
+#je-google-calendar,
+.je-google-calendar {
     font-family: system-ui, sans-serif;
     max-width: 800px;
     margin: 0 auto;
@@ -9,7 +10,8 @@
 }
 
 /* Überschrift */
-#je-google-calendar h2 {
+#je-google-calendar h2,
+.je-google-calendar h2 {
     font-size: 2rem;
     display: flex;
     align-items: center;
@@ -17,13 +19,16 @@
 }
 
 /* Filterleiste */
-#je-google-calendar label {
+#je-google-calendar label,
+.je-google-calendar label {
     margin-right: 10px;
     font-weight: 500;
 }
 
 #je-google-calendar input[type="text"],
-#je-google-calendar select {
+#je-google-calendar select,
+.je-google-calendar input[type="text"],
+.je-google-calendar select {
     padding: 8px 12px 8px 36px;
     margin-right: 15px;
     border: 1px solid #ccc;
@@ -36,13 +41,30 @@
     background-size: 16px;
 }
 
-#je-google-calendar input[type="checkbox"] {
+#je-google-calendar input[type="checkbox"],
+.je-google-calendar input[type="checkbox"] {
     margin-left: 10px;
     transform: scale(1.2);
 }
 
+.calendar-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.calendar-search-label,
+.calendar-category-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 /* Eventliste */
-#events {
+#events,
+.je-kalender-events {
     list-style: none;
     padding: 0;
     margin: 20px 0;
@@ -86,7 +108,8 @@
 }
 
 /* Paginierung */
-#pagination {
+#pagination,
+.je-kalender-pagination {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -94,7 +117,8 @@
     margin-top: 30px;
 }
 
-#pagination button {
+#pagination button,
+.je-kalender-pagination button {
     background: #0073aa;
     color: white;
     border: none;
@@ -104,11 +128,13 @@
     cursor: pointer;
 }
 
-#pagination button:hover {
+#pagination button:hover,
+.je-kalender-pagination button:hover {
     background: #005f8d;
 }
 
-#pagination button:disabled {
+#pagination button:disabled,
+.je-kalender-pagination button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
@@ -152,12 +178,14 @@
     }
 }
 
-#gcal-filtered-events {
+#gcal-filtered-events,
+.gcal-filtered-events {
     list-style: none;
     padding-left: 0;
 }
 
-#gcal-filtered-events .event-item {
+#gcal-filtered-events .event-item,
+.gcal-filtered-events .event-item {
     list-style-type: none;
     margin: 10px 0;
     padding: 10px;
@@ -183,4 +211,11 @@
 
 .event-map .consent-map-button:hover {
     background: #005f8d;
+}
+
+.je-map-consent {
+    border: 1px solid #ccc;
+    padding: 16px;
+    background: #f9f9f9;
+    border-radius: 6px;
 }

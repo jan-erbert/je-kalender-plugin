@@ -2,6 +2,23 @@
 
 Alle Änderungen am Plugin „JE Kalender“ werden in diesem Dokument aufgeführt.
 
+## [1.1.0] - 2026-06-09
+
+### Geändert
+
+- Pluginstruktur bereinigt: gemeinsame Hilfsfunktionen werden jetzt über `includes/functions.php` geladen.
+- Shortcode-Ausgaben verwenden eindeutige Container-IDs und Klassen, damit mehrere Kalenderbereiche auf einer Seite stabiler funktionieren.
+- Frontend-Rendering der Kalenderdaten überarbeitet, sodass Titel, Beschreibung und Standort nicht mehr ungefiltert per HTML eingefügt werden.
+- Inline-Debug-Ausgaben im Frontend entfernt.
+- Geocoding-Anfragen für Karten werden erst nach aktiver Kartenzustimmung ausgelöst.
+
+### Behoben
+
+- Aktivierungslogik aus `includes/install.php` wird jetzt über die Plugin-Hauptdatei registriert.
+- Doppelte Definition von `je_kalender_get_calendar_id()` bereinigt.
+- Kalender-ID berücksichtigt jetzt wieder die Konstante `JE_KALENDER_CALENDAR_ID` vor der gespeicherten Option.
+- Einstellungswerte werden beim Speichern sanitisiert; der Geocoding-Anbieter ist auf `opencage` und `google` begrenzt.
+
 ## [1.0.4] - 2025-09-22
 
 ### Geändert

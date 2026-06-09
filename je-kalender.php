@@ -3,14 +3,18 @@
 /**
  * Plugin Name: JE Kalender
  * Description: Google Kalender Integration mit Leaflet-Kartenanzeige für Veranstaltungen.
- * Version: 1.0.4
+ * Version: 1.1.0
  * Author: Jan Erbert
  */
 
 defined('ABSPATH') || exit;
 
-// Shortcodes laden
+// Pluginmodule laden
+require_once plugin_dir_path(__FILE__) . 'includes/functions.php';
 require_once plugin_dir_path(__FILE__) . 'includes/shortcodes.php';
+require_once plugin_dir_path(__FILE__) . 'includes/install.php';
+
+register_activation_hook(__FILE__, 'je_kalender_install');
 
 // Scripts & Styles einbinden
 add_action('wp_enqueue_scripts', 'je_kalender_enqueue_scripts');
@@ -116,11 +120,31 @@ function je_kalender_settings_page()
 add_action('admin_init', 'je_kalender_register_settings');
 function je_kalender_register_settings()
 {
-    register_setting('je_kalender_settings', 'je_kalender_geocoding_provider');
-    register_setting('je_kalender_settings', 'je_kalender_google_geocode_key');
-    register_setting('je_kalender_settings', 'je_kalender_calendar_id');
-    register_setting('je_kalender_settings', 'je_kalender_google_api_key');
-    register_setting('je_kalender_settings', 'je_kalender_opencage_key');
+    register_setting(
+        'je_kalender_settings',
+        'je_kalender_geocoding_provider',
+        ['sanitize_callback' => 'je_kalender_sanitize_geocoding_provider']
+    );
+    register_setting(
+        'je_kalender_settings',
+        'je_kalender_google_geocode_key',
+        ['sanitize_callback' => 'sanitize_text_field']
+    );
+    register_setting(
+        'je_kalender_settings',
+        'je_kalender_calendar_id',
+        ['sanitize_callback' => 'sanitize_text_field']
+    );
+    register_setting(
+        'je_kalender_settings',
+        'je_kalender_google_api_key',
+        ['sanitize_callback' => 'sanitize_text_field']
+    );
+    register_setting(
+        'je_kalender_settings',
+        'je_kalender_opencage_key',
+        ['sanitize_callback' => 'sanitize_text_field']
+    );
 
     add_settings_section(
         'je_kalender_main_section',
@@ -196,12 +220,6 @@ function je_kalender_opencage_key_field_cb()
         echo '<input type="text" name="je_kalender_opencage_key" value="' . esc_attr($value) . '" style="width: 400px;" />';
         echo '<p class="description">OpenCage Geocoding API Key für Kartenanzeige (<a href="https://opencagedata.com/" target="_blank">opencagedata.com</a>).</p>';
     }
-}
-
-// Kalender-ID holen
-function je_kalender_get_calendar_id()
-{
-    return get_option('je_kalender_calendar_id', '');
 }
 
 function je_kalender_google_geocode_key_field_cb()

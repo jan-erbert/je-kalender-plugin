@@ -1,13 +1,12 @@
 <?php
-// Datei: includes/install.php
 
-// Sicherheitscheck
-if (!defined('ABSPATH')) {
-    exit;
-}
+defined('ABSPATH') || exit;
 
-// Tabelle für Kalender-Anträge anlegen
-function je_kalender_create_table() {
+/**
+ * Legt die Tabelle fuer Kalender-Antraege an.
+ */
+function je_kalender_create_table()
+{
     global $wpdb;
     $table_name = $wpdb->prefix . 'je_kalender_antraege';
 
@@ -24,23 +23,26 @@ function je_kalender_create_table() {
         PRIMARY KEY (id)
     ) $charset_collate;";
 
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
 }
 
-// Benutzerrechte (Capabilities) hinzufügen
-function je_kalender_add_custom_capabilities() {
+/**
+ * Ergaenzt die Plugin-Capability fuer Administratoren.
+ */
+function je_kalender_add_custom_capabilities()
+{
     $role = get_role('administrator');
     if ($role) {
         $role->add_cap('je_kalender_beantragen');
     }
 }
 
-// Installationsfunktion
-function je_kalender_install() {
+/**
+ * Fuehrt die Installationslogik bei Plugin-Aktivierung aus.
+ */
+function je_kalender_install()
+{
     je_kalender_create_table();
     je_kalender_add_custom_capabilities();
 }
-
-// Hook bei Plugin-Aktivierung
-register_activation_hook(__FILE__, 'je_kalender_install');

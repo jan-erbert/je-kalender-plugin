@@ -19,12 +19,15 @@ function je_google_calendar_shortcode($atts)
     $atts = shortcode_atts([
         'max' => 50,
     ], $atts, 'google_calendar');
+    $container_id = wp_unique_id('je-google-calendar-');
+    $max_results = max(1, absint($atts['max']));
 
     ob_start();
 ?>
-    <div id="je-google-calendar"
+    <div id="<?php echo esc_attr($container_id); ?>"
+        class="je-google-calendar je-kalender-container"
         data-calendar-id="<?php echo esc_attr($calendar_id); ?>"
-        data-max="<?php echo intval($atts['max']); ?>">
+        data-max="<?php echo esc_attr($max_results); ?>">
         <p>📅 Lade Events…</p>
     </div>
 <?php
@@ -48,13 +51,17 @@ function je_google_calendar_filtered_shortcode($atts)
         'category' => '',
         'max'      => 3,
     ], $atts, 'google_calendar_filtered');
+    $container_id = wp_unique_id('gcal-filtered-events-');
+    $category = sanitize_text_field($atts['category']);
+    $max_results = max(1, absint($atts['max']));
 
     ob_start();
 ?>
-    <ul id="gcal-filtered-events"
+    <ul id="<?php echo esc_attr($container_id); ?>"
+        class="gcal-filtered-events je-kalender-container"
         data-calendar-id="<?php echo esc_attr($calendar_id); ?>"
-        data-category="<?php echo esc_attr($atts['category']); ?>"
-        data-max="<?php echo esc_attr($atts['max']); ?>">
+        data-category="<?php echo esc_attr($category); ?>"
+        data-max="<?php echo esc_attr($max_results); ?>">
         <li>📅 Lade Events…</li>
     </ul>
 <?php
