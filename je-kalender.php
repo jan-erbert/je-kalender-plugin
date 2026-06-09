@@ -3,19 +3,20 @@
 /**
  * Plugin Name: JE Kalender
  * Description: Google Kalender Integration mit Leaflet-Kartenanzeige für Veranstaltungen.
- * Version: 1.1.1
+ * Version: 1.1.2
  * Author: Jan Erbert
  */
 
 defined('ABSPATH') || exit;
 
 define('JE_KALENDER_PLUGIN_FILE', __FILE__);
-define('JE_KALENDER_PLUGIN_VERSION', '1.1.1');
+define('JE_KALENDER_PLUGIN_VERSION', '1.1.2');
 
 // Pluginmodule laden
 require_once plugin_dir_path(__FILE__) . 'includes/functions.php';
 require_once plugin_dir_path(__FILE__) . 'includes/assets.php';
 require_once plugin_dir_path(__FILE__) . 'includes/admin.php';
+require_once plugin_dir_path(__FILE__) . 'includes/ajax.php';
 require_once plugin_dir_path(__FILE__) . 'includes/shortcodes.php';
 require_once plugin_dir_path(__FILE__) . 'includes/install.php';
 

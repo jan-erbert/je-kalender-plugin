@@ -31,6 +31,7 @@ Ideal für Vereine, Organisationen oder Gruppen, die Veranstaltungen auf einfach
   - Wahl zwischen OpenCage oder Google Geocoding
   - Je nach Auswahl: API Key für OpenCage oder Google Geocoding
 - 🔧 Fallback über `wp-config.php` für API Keys
+- ⚡ Serverseitiger API-Proxy mit Cache für Kalender- und Geocoding-Anfragen
 
 ---
 
@@ -61,11 +62,34 @@ Je nach Auswahl im Backend erfolgt das Geocoding über **OpenCage** (kostenlos) 
 
 ---
 
+## ⚙️ Technische Hinweise
+
+Kalender- und Geocoding-Anfragen laufen über WordPress-AJAX. API Keys werden dadurch nicht mehr direkt im Frontend ausgegeben.
+
+Standard-Caches:
+
+- Kalender-Events: 10 Minuten
+- Geocoding-Ergebnisse: 30 Tage
+
+Die Cache-Dauer kann bei Bedarf über Konstanten in `wp-config.php` angepasst werden:
+
+```php
+define('JE_KALENDER_EVENTS_CACHE_TTL', 10 * MINUTE_IN_SECONDS);
+define('JE_KALENDER_GEOCODING_CACHE_TTL', 30 * DAY_IN_SECONDS);
+```
+
+Für gezielte Fehlersuche kann der Debug-Modus aktiviert werden:
+
+```php
+define('JE_KALENDER_DEBUG', true);
+```
+
+---
+
 ## 🧪 ToDos für nächste Versionen
 
 - ⏳ Fallback bei fehlgeschlagenem Geocoding (Google Maps-Link?)
 - ⏳ Gutenberg Block für Kalender
-- ⏳ Caching von Geokoordinaten zur Performance-Optimierung
 
 ---
 

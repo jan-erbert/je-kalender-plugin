@@ -57,10 +57,9 @@ function je_kalender_enqueue_scripts()
     );
 
     wp_localize_script('je-kalender', 'JEKalenderData', [
+        'ajaxUrl' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('je_kalender_frontend'),
         'geocoder' => get_option('je_kalender_geocoding_provider', 'opencage'),
-        'googleKey' => esc_attr(je_kalender_get_api_key()),
-        'googleGeocodeKey' => esc_attr(je_kalender_get_google_geocode_key()),
-        'geoKey' => esc_attr(je_kalender_get_opencage_key()),
-        'mapId' => '',
+        'debug' => defined('JE_KALENDER_DEBUG') && JE_KALENDER_DEBUG,
     ]);
 }

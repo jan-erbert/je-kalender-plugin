@@ -104,42 +104,44 @@
         mapContainer.appendChild(box);
     }
 
-    async function resolveCoordinates(address, geoKey) {
-        const provider = pluginData.geocoder || "opencage";
-        const googleKey = pluginData.googleGeocodeKey || "";
-
-        if (provider === "google") {
-            if (!googleKey) {
-                throw new Error("Google Geocoding API-Key fehlt.");
-            }
-
-            const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleKey}`;
-            const response = await fetch(url);
-            const data = await response.json();
-
-            if (data.status !== "OK" || !data.results || data.results.length === 0) {
-                throw new Error("Google Maps konnte die Adresse nicht finden.");
-            }
-
-            return data.results[0].geometry.location;
+    async function fetchAjax(params) {
+        if (pluginData.debug) {
+            params.set("debug", "1");
         }
 
-        if (!geoKey) {
-            throw new Error("OpenCage API-Key fehlt.");
-        }
-
-        const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(address)}&key=${geoKey}`;
+        const url = pluginData.ajaxUrl + "?" + params.toString();
         const response = await fetch(url);
         const data = await response.json();
 
-        if (!data.results || data.results.length === 0) {
-            throw new Error("OpenCage konnte die Adresse nicht finden.");
+        if (!response.ok || !data.success) {
+            const message = data && data.data && data.data.message
+                ? data.data.message
+                : "Anfrage konnte nicht geladen werden.";
+
+            const error = new Error(message);
+            error.details = data;
+
+            if (pluginData.debug && window.console && window.console.error) {
+                window.console.error("JE Kalender AJAX Fehler:", data);
+            }
+
+            throw error;
         }
 
-        return data.results[0].geometry;
+        return data.data;
     }
 
-    function geocodeAddress(address, mapContainer, geoKey) {
+    async function resolveCoordinates(address) {
+        const params = new URLSearchParams({
+            action: "je_kalender_geocode",
+            nonce: pluginData.nonce || "",
+            address,
+        });
+
+        return fetchAjax(params);
+    }
+
+    function geocodeAddress(address, mapContainer) {
         const provider = pluginData.geocoder || "opencage";
 
         createConsentBox(mapContainer, provider, async function () {
@@ -149,7 +151,7 @@
                     return;
                 }
 
-                const coordinates = await resolveCoordinates(address, geoKey);
+                const coordinates = await resolveCoordinates(address);
                 const map = L.map(mapContainer).setView([coordinates.lat, coordinates.lng], 15);
 
                 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -265,7 +267,7 @@
         return item;
     }
 
-    function attachToggles(container, geoKey) {
+    function attachToggles(container) {
         container.querySelectorAll(".event-header").forEach(function (header) {
             header.addEventListener("click", function () {
                 const details = header.nextElementSibling;
@@ -282,7 +284,7 @@
                     const locationText = details.dataset.location || "";
 
                     if (locationText) {
-                        geocodeAddress(locationText, mapContainer, geoKey);
+                        geocodeAddress(locationText, mapContainer);
                         mapContainer.classList.add("map-loaded");
                     }
                 }
@@ -294,14 +296,13 @@
         });
     }
 
-    async function fetchCalendarEvents(calendarId, googleApiKey, maxResults) {
-        const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?key=${googleApiKey}&timeMin=${new Date().toISOString()}&orderBy=startTime&singleEvents=true&maxResults=${maxResults}`;
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (!response.ok || data.error) {
-            throw new Error("Google Calendar API konnte nicht geladen werden.");
-        }
+    async function fetchCalendarEvents(maxResults) {
+        const params = new URLSearchParams({
+            action: "je_kalender_events",
+            nonce: pluginData.nonce || "",
+            max: String(maxResults),
+        });
+        const data = await fetchAjax(params);
 
         return Array.isArray(data.items) ? data.items : [];
     }
@@ -370,7 +371,7 @@
         };
     }
 
-    async function initFullCalendar(container, calendarId, googleApiKey, geoKey, maxResults) {
+    async function initFullCalendar(container, maxResults) {
         const elements = buildFullCalendarLayout(container);
         const allCategories = new Set();
         let allEvents = [];
@@ -411,7 +412,7 @@
                 elements.eventList.appendChild(buildEventItem(event, index, false));
             });
 
-            attachToggles(elements.eventList, geoKey);
+            attachToggles(elements.eventList);
             updatePagination();
         }
 
@@ -457,7 +458,7 @@
         });
 
         try {
-            const items = await fetchCalendarEvents(calendarId, googleApiKey, maxResults);
+            const items = await fetchCalendarEvents(maxResults);
 
             allEvents = items.map(normalizeEvent).filter(function (event) {
                 return event !== null;
@@ -481,12 +482,12 @@
         }
     }
 
-    async function initFilteredCalendar(container, calendarId, googleApiKey, geoKey) {
+    async function initFilteredCalendar(container) {
         const category = (container.dataset.category || "").trim().toLowerCase();
         const maxEvents = parseInt(container.dataset.max || "3", 10);
 
         try {
-            const items = await fetchCalendarEvents(calendarId, googleApiKey, 100);
+            const items = await fetchCalendarEvents(100);
             const events = items.map(normalizeEvent).filter(function (event) {
                 return event !== null;
             });
@@ -512,7 +513,7 @@
                 container.appendChild(buildEventItem(event, index, true));
             });
 
-            attachToggles(container, geoKey);
+            attachToggles(container);
         } catch (error) {
             showMessage(container, "Fehler beim Laden der Events.");
         }
@@ -520,21 +521,19 @@
 
     function initCalendar(container) {
         const calendarId = container.dataset.calendarId || "";
-        const googleApiKey = pluginData.googleKey || "";
-        const geoKey = pluginData.geoKey || "";
         const maxResults = parseInt(container.dataset.max || "50", 10);
 
-        if (!calendarId || !googleApiKey) {
-            showMessage(container, "Kalender-ID oder API-Key fehlen.");
+        if (!calendarId || !pluginData.ajaxUrl || !pluginData.nonce) {
+            showMessage(container, "Kalender-Konfiguration fehlt.");
             return;
         }
 
         if (container.classList.contains("gcal-filtered-events")) {
-            initFilteredCalendar(container, calendarId, googleApiKey, geoKey);
+            initFilteredCalendar(container);
             return;
         }
 
-        initFullCalendar(container, calendarId, googleApiKey, geoKey, maxResults);
+        initFullCalendar(container, maxResults);
     }
 
     document.addEventListener("DOMContentLoaded", function () {

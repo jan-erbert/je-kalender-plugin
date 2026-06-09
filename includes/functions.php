@@ -80,3 +80,23 @@ function je_kalender_sanitize_geocoding_provider($provider)
 
     return 'opencage';
 }
+
+/**
+ * Gibt die Cache-Dauer fuer Kalender-Events zurueck.
+ */
+function je_kalender_get_events_cache_ttl()
+{
+    return defined('JE_KALENDER_EVENTS_CACHE_TTL')
+        ? absint(JE_KALENDER_EVENTS_CACHE_TTL)
+        : 10 * MINUTE_IN_SECONDS;
+}
+
+/**
+ * Gibt die Cache-Dauer fuer Geocoding-Ergebnisse zurueck.
+ */
+function je_kalender_get_geocoding_cache_ttl()
+{
+    return defined('JE_KALENDER_GEOCODING_CACHE_TTL')
+        ? absint(JE_KALENDER_GEOCODING_CACHE_TTL)
+        : 30 * DAY_IN_SECONDS;
+}

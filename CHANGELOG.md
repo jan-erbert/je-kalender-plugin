@@ -2,6 +2,21 @@
 
 Alle Änderungen am Plugin „JE Kalender“ werden in diesem Dokument aufgeführt.
 
+## [1.1.2] - 2026-06-09
+
+### Geändert
+
+- Google Calendar API-Aufrufe laufen jetzt über einen WordPress-AJAX-Proxy statt direkt aus dem Browser.
+- Geocoding-Aufrufe für OpenCage und Google laufen jetzt serverseitig über WordPress-AJAX.
+- API-Keys werden nicht mehr an das Frontend lokalisiert.
+- Kalender-Events werden per WordPress Transient kurzzeitig gecacht.
+- Geocoding-Ergebnisse werden per WordPress Transient längerfristig gecacht.
+- Serverseitige API-Anfragen senden den Website-Referrer mit, damit vorhandene referrerbasierte Google-API-Keys weiter funktionieren.
+- Sichere Debug-Details für serverseitige API-Fehler ergänzt, um Google-/Hosting-Probleme gezielt einzugrenzen.
+- AJAX-Fehlerdetails können bei Bedarf gezielt über `JE_KALENDER_DEBUG` sichtbar gemacht werden.
+- Google-Calendar-Proxy normalisiert Kalender-IDs und verwendet UTC-Zeitstempel im `Z`-Format.
+- README um Hinweise zu serverseitigem Proxy, Cache-Dauer und Debug-Modus ergänzt.
+
 ## [1.1.1] - 2026-06-09
 
 ### Geändert

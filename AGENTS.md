@@ -22,6 +22,7 @@ includes/
 +-- shortcodes.php  Shortcodes fuer Kalenderausgaben
 +-- assets.php      Bedingtes Laden der Frontend-Assets
 +-- admin.php       Admin-Menue und Einstellungsseite
++-- ajax.php        Server-seitige API-Proxies und Caching
 +-- functions.php   Hilfsfunktionen fuer Konfiguration und API-Keys
 +-- install.php     Aktivierungshook fuer kuenftige Migrationen
 ```
@@ -58,6 +59,7 @@ Bei jeder Aenderung an Formularen, AJAX-Endpunkten oder gespeicherten Optionen p
 - Konstanten aus `wp-config.php` haben Vorrang vor gespeicherten Optionen.
 - Bestehende Optionsnamen mit Prefix `je_kalender_` beibehalten.
 - Google Calendar API, Google Geocoding und OpenCage getrennt behandeln.
+- Frontend-Zugriffe auf externe APIs bevorzugt ueber die WordPress-AJAX-Proxies fuehren.
 - Fehler bei externen API-Aufrufen nachvollziehbar behandeln und nicht still verschlucken.
 - Keine Secrets in Logs, HTML, JavaScript-Debugausgaben oder Dokumentation ausgeben.
 
