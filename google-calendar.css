@@ -223,3 +223,17 @@
     background: #f9f9f9;
     border-radius: 6px;
 }
+
+.je-map-fallback {
+    border: 1px solid #ddd;
+    padding: 16px;
+    background: #fff;
+    border-radius: 6px;
+}
+
+.je-map-fallback-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 0;
+}

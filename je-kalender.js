@@ -53,6 +53,43 @@
         container.appendChild(item);
     }
 
+    function createExternalLink(url, label) {
+        const link = createElement("a", "", label);
+
+        link.href = url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+
+        return link;
+    }
+
+    function showMapFallback(mapContainer, address, message) {
+        clearElement(mapContainer);
+
+        const wrapper = createElement("div", "je-map-fallback");
+        const text = createElement("p", "", message || "Karte konnte nicht geladen werden.");
+        const actions = createElement("p", "je-map-fallback-actions");
+        const encodedAddress = encodeURIComponent(address);
+
+        actions.appendChild(
+            createExternalLink(
+                "https://www.openstreetmap.org/search?query=" + encodedAddress,
+                "Adresse in OpenStreetMap öffnen"
+            )
+        );
+        actions.appendChild(document.createTextNode(" "));
+        actions.appendChild(
+            createExternalLink(
+                "https://www.google.com/maps/search/?api=1&query=" + encodedAddress,
+                "Adresse in Google Maps öffnen"
+            )
+        );
+
+        wrapper.appendChild(text);
+        wrapper.appendChild(actions);
+        mapContainer.appendChild(wrapper);
+    }
+
     function getMapConsent() {
         try {
             return localStorage.getItem("jeKalender_map_consent") === "true";
@@ -147,7 +184,7 @@
         createConsentBox(mapContainer, provider, async function () {
             try {
                 if (typeof L === "undefined" || !L.map) {
-                    showMessage(mapContainer, "Karte konnte nicht geladen werden.");
+                    showMapFallback(mapContainer, address, "Karte konnte nicht geladen werden.");
                     return;
                 }
 
@@ -162,7 +199,7 @@
 
                 mapContainer._leaflet_map = map;
             } catch (error) {
-                showMessage(mapContainer, "Karte konnte nicht geladen werden.");
+                showMapFallback(mapContainer, address, "Karte konnte nicht geladen werden.");
             }
         });
     }

@@ -25,6 +25,7 @@ Ideal für Vereine, Organisationen oder Gruppen, die Veranstaltungen auf einfach
 - 🗺 Alternativ: Google Geocoding API für präzisere Standortauflösung
 - 🔐 Datenschutzkonforme Karteneinbindung mit Nutzer-Zustimmung
 - 📱 Responsives Design
+- 🧭 Karten-Fallback mit Links zu OpenStreetMap und Google Maps
 - 🛠 Admin-Seite mit Einstellung für:
   - Google Kalender-ID
   - Google API Key (für Kalenderdaten)
@@ -32,6 +33,7 @@ Ideal für Vereine, Organisationen oder Gruppen, die Veranstaltungen auf einfach
   - Je nach Auswahl: API Key für OpenCage oder Google Geocoding
 - 🔧 Fallback über `wp-config.php` für API Keys
 - ⚡ Serverseitiger API-Proxy mit Cache für Kalender- und Geocoding-Anfragen
+- 🧹 Cache kann im Backend manuell geleert werden
 
 ---
 
@@ -88,7 +90,6 @@ define('JE_KALENDER_DEBUG', true);
 
 ## 🧪 ToDos für nächste Versionen
 
-- ⏳ Fallback bei fehlgeschlagenem Geocoding (Google Maps-Link?)
 - ⏳ Gutenberg Block für Kalender
 
 ---

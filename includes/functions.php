@@ -100,3 +100,39 @@ function je_kalender_get_geocoding_cache_ttl()
         ? absint(JE_KALENDER_GEOCODING_CACHE_TTL)
         : 30 * DAY_IN_SECONDS;
 }
+
+/**
+ * Leert Kalender- und Geocoding-Transients.
+ */
+function je_kalender_clear_cache()
+{
+    return je_kalender_delete_transients_by_prefix('je_kal_events_')
+        + je_kalender_delete_transients_by_prefix('je_kal_geo_');
+}
+
+/**
+ * Loescht Transients anhand eines Prefixes.
+ */
+function je_kalender_delete_transients_by_prefix($prefix)
+{
+    global $wpdb;
+
+    $prefix = sanitize_key($prefix);
+    $transient_like = $wpdb->esc_like('_transient_' . $prefix) . '%';
+    $timeout_like = $wpdb->esc_like('_transient_timeout_' . $prefix) . '%';
+
+    $deleted_transients = $wpdb->query(
+        $wpdb->prepare(
+            "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+            $transient_like
+        )
+    );
+    $wpdb->query(
+        $wpdb->prepare(
+            "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+            $timeout_like
+        )
+    );
+
+    return is_int($deleted_transients) ? $deleted_transients : 0;
+}

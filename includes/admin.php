@@ -4,6 +4,7 @@ defined('ABSPATH') || exit;
 
 add_action('admin_menu', 'je_kalender_admin_menu');
 add_action('admin_init', 'je_kalender_register_settings');
+add_action('admin_init', 'je_kalender_handle_cache_action');
 add_action('admin_enqueue_scripts', 'je_kalender_enqueue_admin_assets');
 
 /**
@@ -47,6 +48,7 @@ function je_kalender_settings_page()
     ?>
     <div class="wrap">
         <h1>JE Kalender – Einstellungen</h1>
+        <?php settings_errors('je_kalender_messages'); ?>
         <form method="post" action="options.php">
             <?php
             settings_fields('je_kalender_settings');
@@ -68,8 +70,43 @@ function je_kalender_settings_page()
 
             <?php submit_button(); ?>
         </form>
+
+        <hr>
+
+        <h2>Cache</h2>
+        <p>Leert zwischengespeicherte Kalender-Events und Geocoding-Ergebnisse.</p>
+        <form method="post" action="">
+            <?php wp_nonce_field('je_kalender_clear_cache', 'je_kalender_clear_cache_nonce'); ?>
+            <input type="hidden" name="je_kalender_action" value="clear_cache">
+            <?php submit_button('Kalender-Cache leeren', 'secondary'); ?>
+        </form>
     </div>
     <?php
+}
+
+/**
+ * Verarbeitet Admin-Aktionen der Einstellungsseite.
+ */
+function je_kalender_handle_cache_action()
+{
+    if (!isset($_POST['je_kalender_action']) || 'clear_cache' !== sanitize_text_field(wp_unslash($_POST['je_kalender_action']))) {
+        return;
+    }
+
+    if (!current_user_can('manage_options')) {
+        wp_die(esc_html__('Du hast keine Berechtigung, diesen Cache zu leeren.', 'je-kalender'));
+    }
+
+    check_admin_referer('je_kalender_clear_cache', 'je_kalender_clear_cache_nonce');
+
+    $deleted_count = je_kalender_clear_cache();
+
+    add_settings_error(
+        'je_kalender_messages',
+        'je_kalender_cache_cleared',
+        sprintf('Kalender-Cache geleert. Entfernte Einträge: %d.', $deleted_count),
+        'updated'
+    );
 }
 
 /**

@@ -2,6 +2,13 @@
 
 Alle Änderungen am Plugin „JE Kalender“ werden in diesem Dokument aufgeführt.
 
+## [1.1.3] - 2026-06-09
+
+### Hinzugefügt
+
+- Fallback-Links zu OpenStreetMap und Google Maps, wenn die eingebettete Karte nicht geladen werden kann.
+- Button zum Leeren des Kalender- und Geocoding-Caches auf der Einstellungsseite.
+
 ## [1.1.2] - 2026-06-09
 
 ### Geändert
