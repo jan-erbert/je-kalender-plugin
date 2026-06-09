@@ -309,6 +309,7 @@
     function buildFullCalendarLayout(container) {
         clearElement(container);
 
+        const containerId = container.id || "je-google-calendar";
         const headline = createElement("h2", "", "📅 Nächste Events");
         const filters = createElement("div", "calendar-filters");
         const searchLabel = createElement("label", "calendar-search-label");
@@ -325,12 +326,18 @@
         const allOption = createElement("option", "", "Alle");
 
         searchInput.type = "text";
+        searchInput.id = containerId + "-event-search";
         searchInput.placeholder = "Nach Event suchen...";
+        categoryFilter.id = containerId + "-category-filter";
         categoryFilter.appendChild(allOption);
         competitionCheckbox.type = "checkbox";
+        competitionCheckbox.id = containerId + "-competition-checkbox";
         prevPageBtn.type = "button";
         nextPageBtn.type = "button";
         prevPageBtn.disabled = true;
+        searchLabel.htmlFor = searchInput.id;
+        categoryLabel.htmlFor = categoryFilter.id;
+        competitionLabel.htmlFor = competitionCheckbox.id;
 
         searchLabel.appendChild(document.createTextNode("🔍 "));
         searchLabel.appendChild(searchInput);

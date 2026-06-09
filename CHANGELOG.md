@@ -2,6 +2,20 @@
 
 Alle Änderungen am Plugin „JE Kalender“ werden in diesem Dokument aufgeführt.
 
+## [1.1.1] - 2026-06-09
+
+### Geändert
+
+- Plugin-Hauptdatei weiter verschlankt und Admin- sowie Asset-Logik in eigene Include-Dateien ausgelagert.
+- Frontend-Assets werden regulär nur noch auf Seiten mit Kalender-Shortcodes geladen.
+- Shortcodes fordern ihre Frontend-Assets zusätzlich als Fallback an, damit Einbindungen außerhalb normaler Beitragsinhalte robuster bleiben.
+- API-Key-Helfer für OpenCage und Google Geocoding ergänzt.
+- Admin-Logik zur Anzeige der Geocoding-Felder null-sicherer gemacht.
+- Breitenbegrenzung der Kalenderansicht nach der Container-Umstellung stabilisiert.
+- Mobile Filterdarstellung nach der Umstellung auf eindeutige Container-IDs wieder klassenbasiert angebunden.
+- Inline-Script der Einstellungsseite in ein eigenes Admin-Asset ausgelagert.
+- Ungenutzte Neuanlage der historischen Antrags-Tabelle und Capability aus der Aktivierungslogik entfernt; bestehende Daten werden nicht gelöscht.
+
 ## [1.1.0] - 2026-06-09
 
 ### Geändert

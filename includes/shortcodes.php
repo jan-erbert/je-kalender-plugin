@@ -10,6 +10,8 @@ if (!defined('ABSPATH')) {
  */
 function je_google_calendar_shortcode($atts)
 {
+    je_kalender_enqueue_scripts();
+
     $calendar_id = je_kalender_get_calendar_id();
 
     if (empty($calendar_id)) {
@@ -41,6 +43,8 @@ add_shortcode('google_calendar', 'je_google_calendar_shortcode');
  */
 function je_google_calendar_filtered_shortcode($atts)
 {
+    je_kalender_enqueue_scripts();
+
     $calendar_id = je_kalender_get_calendar_id();
 
     if (empty($calendar_id)) {

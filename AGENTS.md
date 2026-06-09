@@ -12,6 +12,7 @@ Diese Datei ergaenzt die globale `AGENTS.md`. Allgemeine Regeln zu kleinen Schri
 - Einstiegspunkt ist `je-kalender.php`.
 - Fachmodule liegen unter `includes/`.
 - Frontend-Assets liegen aktuell in `je-kalender.js` und `google-calendar.css`.
+- Admin-JavaScript liegt aktuell in `je-kalender-admin.js`.
 - Bestehende WordPress-Konventionen haben Vorrang vor eigenen Framework-Strukturen.
 
 Wichtige Bereiche:
@@ -19,8 +20,10 @@ Wichtige Bereiche:
 ```text
 includes/
 +-- shortcodes.php  Shortcodes fuer Kalenderausgaben
++-- assets.php      Bedingtes Laden der Frontend-Assets
++-- admin.php       Admin-Menue und Einstellungsseite
 +-- functions.php   Hilfsfunktionen fuer Konfiguration und API-Keys
-+-- install.php     Installationslogik und Capabilities
++-- install.php     Aktivierungshook fuer kuenftige Migrationen
 ```
 
 ---
@@ -41,7 +44,7 @@ includes/
 Bei jeder Aenderung an Formularen, AJAX-Endpunkten oder gespeicherten Optionen pruefen:
 
 - Nonces mit `wp_nonce_field()`, `wp_verify_nonce()` oder `check_ajax_referer()`.
-- Capabilities mit WordPress-Rechten wie `manage_options` oder plugin-eigenen Rechten wie `je_kalender_beantragen` pruefen.
+- Capabilities mit WordPress-Rechten wie `manage_options` pruefen.
 - Eingaben passend sanitizen, z. B. `sanitize_text_field()`, `sanitize_textarea_field()`, `intval()`, `array_map()`.
 - Ausgaben passend escapen, z. B. `esc_html()`, `esc_attr()`, `esc_url()`, `wp_kses_post()`.
 - Keine API-Keys, Tokens oder vollstaendige Secret-Werte ausgeben.

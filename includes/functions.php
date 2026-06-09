@@ -27,6 +27,30 @@ function je_kalender_get_calendar_id()
 }
 
 /**
+ * Gibt den OpenCage API-Key aus Konstante oder Option zurueck.
+ */
+function je_kalender_get_opencage_key()
+{
+    if (defined('JE_KALENDER_OPENCAGE_KEY') && !empty(JE_KALENDER_OPENCAGE_KEY)) {
+        return JE_KALENDER_OPENCAGE_KEY;
+    }
+
+    return get_option('je_kalender_opencage_key', '');
+}
+
+/**
+ * Gibt den Google Geocoding API-Key aus Konstante oder Option zurueck.
+ */
+function je_kalender_get_google_geocode_key()
+{
+    if (defined('JE_KALENDER_GOOGLE_GEOCODE_KEY') && !empty(JE_KALENDER_GOOGLE_GEOCODE_KEY)) {
+        return JE_KALENDER_GOOGLE_GEOCODE_KEY;
+    }
+
+    return get_option('je_kalender_google_geocode_key', '');
+}
+
+/**
  * Gibt den Google Maps API-Key aus der alten Konstante zurueck.
  */
 function je_get_google_maps_api_key()

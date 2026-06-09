@@ -26,12 +26,5 @@
             </property>
         </properties>
     </rule>
-    <rule ref="WordPress.WP.Capabilities">
-        <properties>
-            <property name="custom_capabilities" type="array">
-                <element value="je_kalender_beantragen"/>
-            </property>
-        </properties>
-    </rule>
     <rule ref="PHPCompatibilityWP"/>
 </ruleset>

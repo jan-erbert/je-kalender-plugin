@@ -2,11 +2,15 @@
 
 /* Gesamtlayout */
 #je-google-calendar,
-.je-google-calendar {
+.je-google-calendar,
+.je-kalender-container.je-google-calendar,
+[id^="je-google-calendar-"] {
     font-family: system-ui, sans-serif;
-    max-width: 800px;
-    margin: 0 auto;
+    max-width: 800px !important;
+    margin-right: auto !important;
+    margin-left: auto !important;
     padding: 20px;
+    box-sizing: border-box;
 }
 
 /* Überschrift */
@@ -141,25 +145,25 @@
 
 @media (max-width: 600px) {
     /* Mehr horizontaler Abstand bei Events */
-    .event-item {
+    .je-kalender-container .event-item {
         margin-left: 10px;
         margin-right: 10px;
     }
 
     /* Filterbereich mobil untereinander anordnen */
-    #event-search,
-    #category-filter,
-    #competition-checkbox {
+    .je-google-calendar .calendar-search-label,
+    .je-google-calendar .calendar-category-label,
+    .je-google-calendar .competition-filter,
+    .je-google-calendar .calendar-search-label input,
+    .je-google-calendar .calendar-category-label select {
         display: block;
         width: 100%;
         max-width: 100%;
         margin-bottom: 10px;
     }
 
-    label[for="event-search"],
-    label[for="category-filter"],
-    label[for="competition-checkbox"] {
-        display: block;
+    .je-google-calendar .competition-filter {
+        display: flex;
     }
 }
 
