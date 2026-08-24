@@ -341,7 +341,10 @@
         });
         const data = await fetchAjax(params);
 
-        return Array.isArray(data.items) ? data.items : [];
+        return {
+            complete: Boolean(data.complete),
+            items: Array.isArray(data.items) ? data.items : [],
+        };
     }
 
     function buildFullCalendarLayout(container) {
@@ -408,12 +411,15 @@
         };
     }
 
-    async function initFullCalendar(container, maxResults) {
+    async function initFullCalendar(container, maxResults, initialResults) {
         const elements = buildFullCalendarLayout(container);
         const allCategories = new Set();
         let allEvents = [];
         let filteredEvents = [];
         let currentPage = 1;
+        let loadedLimit = Math.min(maxResults, initialResults);
+        let isComplete = false;
+        let isLoading = false;
         const eventsPerPage = 15;
 
         function updateCategoryDropdown() {
@@ -430,7 +436,7 @@
 
             elements.pageInfo.textContent = "Seite " + currentPage + " von " + totalPages;
             elements.prevPageBtn.disabled = currentPage === 1;
-            elements.nextPageBtn.disabled = currentPage >= totalPages;
+            elements.nextPageBtn.disabled = currentPage >= totalPages && (isComplete || loadedLimit >= maxResults);
         }
 
         function renderEvents() {
@@ -451,6 +457,50 @@
 
             attachToggles(elements.eventList);
             updatePagination();
+        }
+
+        function rebuildEvents(items, selectedCategory) {
+            allCategories.clear();
+            allEvents = items.map(normalizeEvent).filter(function (event) {
+                return event !== null;
+            });
+
+            clearElement(elements.categoryFilter);
+            elements.categoryFilter.appendChild(createElement("option", "", "Alle"));
+
+            allEvents.forEach(function (event) {
+                event.categories.forEach(function (category) {
+                    allCategories.add(category);
+                });
+            });
+
+            updateCategoryDropdown();
+
+            if (selectedCategory && Array.from(elements.categoryFilter.options).some(function (option) {
+                return option.value === selectedCategory;
+            })) {
+                elements.categoryFilter.value = selectedCategory;
+            }
+        }
+
+        async function loadEvents(targetLimit) {
+            if (isLoading) {
+                return false;
+            }
+
+            isLoading = true;
+            try {
+                const selectedCategory = elements.categoryFilter.value;
+                const data = await fetchCalendarEvents(targetLimit);
+
+                loadedLimit = Math.max(loadedLimit, targetLimit);
+                isComplete = data.complete || loadedLimit >= maxResults;
+                rebuildEvents(data.items, selectedCategory);
+
+                return true;
+            } finally {
+                isLoading = false;
+            }
         }
 
         function filterAndRenderEvents() {
@@ -478,41 +528,65 @@
             renderEvents();
         }
 
-        elements.categoryFilter.addEventListener("change", filterAndRenderEvents);
+        async function filterAndRenderEventsWithBackfill() {
+            filterAndRenderEvents();
+
+            while (
+                filteredEvents.length < eventsPerPage
+                && !isComplete
+                && loadedLimit < maxResults
+                && (elements.categoryFilter.value !== "Alle" || elements.competitionCheckbox.checked)
+            ) {
+                const nextLimit = Math.min(maxResults, loadedLimit + initialResults);
+                const previousLimit = loadedLimit;
+                const loaded = await loadEvents(nextLimit);
+
+                if (!loaded || previousLimit === loadedLimit) {
+                    break;
+                }
+
+                filterAndRenderEvents();
+            }
+        }
+
+        elements.categoryFilter.addEventListener("change", filterAndRenderEventsWithBackfill);
         elements.searchInput.addEventListener("input", filterAndRenderEvents);
-        elements.competitionCheckbox.addEventListener("change", filterAndRenderEvents);
+        elements.competitionCheckbox.addEventListener("change", filterAndRenderEventsWithBackfill);
         elements.prevPageBtn.addEventListener("click", function () {
             if (currentPage > 1) {
                 currentPage--;
                 renderEvents();
             }
         });
-        elements.nextPageBtn.addEventListener("click", function () {
+        elements.nextPageBtn.addEventListener("click", async function () {
             if (currentPage < Math.ceil(filteredEvents.length / eventsPerPage)) {
                 currentPage++;
                 renderEvents();
+                return;
+            }
+
+            if (!isComplete && loadedLimit < maxResults) {
+                const nextLimit = Math.min(maxResults, loadedLimit + initialResults);
+                const nextPage = currentPage + 1;
+
+                await loadEvents(nextLimit);
+                filterAndRenderEvents();
+
+                if (nextPage <= Math.ceil(filteredEvents.length / eventsPerPage)) {
+                    currentPage = nextPage;
+                    renderEvents();
+                }
             }
         });
 
         try {
-            const items = await fetchCalendarEvents(maxResults);
-
-            allEvents = items.map(normalizeEvent).filter(function (event) {
-                return event !== null;
-            });
+            await loadEvents(loadedLimit);
 
             if (!allEvents.length) {
                 showMessage(elements.eventList, "Keine kommenden Events gefunden.");
                 return;
             }
 
-            allEvents.forEach(function (event) {
-                event.categories.forEach(function (category) {
-                    allCategories.add(category);
-                });
-            });
-
-            updateCategoryDropdown();
             filterAndRenderEvents();
         } catch (error) {
             showMessage(elements.eventList, "Fehler beim Laden der Events.");
@@ -522,10 +596,13 @@
     async function initFilteredCalendar(container) {
         const category = (container.dataset.category || "").trim().toLowerCase();
         const maxEvents = parseInt(container.dataset.max || "3", 10);
+        const configuredLimit = parseInt(pluginData.eventsMaxResults || "1000", 10);
+        const searchLimit = Number.isFinite(configuredLimit) && configuredLimit > 0 ? configuredLimit : 1000;
+        const fetchLimit = Math.max(maxEvents, searchLimit);
 
         try {
-            const items = await fetchCalendarEvents(100);
-            const events = items.map(normalizeEvent).filter(function (event) {
+            const data = await fetchCalendarEvents(fetchLimit);
+            const events = data.items.map(normalizeEvent).filter(function (event) {
                 return event !== null;
             });
             let filtered = events;
@@ -559,6 +636,7 @@
     function initCalendar(container) {
         const calendarId = container.dataset.calendarId || "";
         const maxResults = parseInt(container.dataset.max || "50", 10);
+        const initialResults = parseInt(container.dataset.initial || "150", 10);
 
         if (!calendarId || !pluginData.ajaxUrl || !pluginData.nonce) {
             showMessage(container, "Kalender-Konfiguration fehlt.");
@@ -570,7 +648,7 @@
             return;
         }
 
-        initFullCalendar(container, maxResults);
+        initFullCalendar(container, maxResults, initialResults);
     }
 
     document.addEventListener("DOMContentLoaded", function () {

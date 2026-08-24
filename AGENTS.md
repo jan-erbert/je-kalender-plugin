@@ -116,9 +116,9 @@ Bei jeder Aenderung an Formularen, AJAX-Endpunkten oder gespeicherten Optionen p
 - Fuer teilbare VS-Code-Konfigurationen nur unkritische Einstellungen versionieren.
 - Deploy-/Sync-Einstellungen duerfen keine produktiven Daten loeschen oder ueberschreiben, ohne dass dies ausdruecklich bestaetigt wurde.
 - Sync-Richtung ist ausschliesslich lokal nach remote. Keine Remote-Dateien als Quelle fuer lokalen Code verwenden, ausser der Nutzer fordert dies ausdruecklich.
-- Remote-Pfad fuer dieses Plugin: `/lauffreunde-naheland.jan-erbert.de/wp-content/plugins/je-kalender-plugin`.
-- Beim FTP-Sync immer lokale Ausschluesse beachten: `.git`, `.vscode`, `.agents`, `.codex`, `vendor`, `node_modules`, `wiki`, Logs, ZIPs und lokale Cache-Dateien.
-- Nach einem manuellen FTP-Sync eine kurze Kontrolle melden: Anzahl Uploads, Loeschungen, fehlende Dateien und extra Remote-Dateien.
+- Remote-Pfad fuer dieses Plugin: `/www/htdocs/w019c007/lauffreunde-naheland.jan-erbert.de/wp-content/plugins/je-kalender-plugin`.
+- Beim SFTP-/Server-Sync immer lokale Ausschluesse beachten: `.git`, `.vscode`, `.agents`, `.codex`, `vendor`, `node_modules`, `wiki`, Logs, ZIPs und lokale Cache-Dateien.
+- Nach einem manuellen SFTP-/Server-Sync eine kurze Kontrolle melden: Anzahl Uploads, Loeschungen, fehlende Dateien und extra Remote-Dateien.
 
 ---
 

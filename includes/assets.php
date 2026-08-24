@@ -61,5 +61,7 @@ function je_kalender_enqueue_scripts()
         'nonce' => wp_create_nonce('je_kalender_frontend'),
         'geocoder' => get_option('je_kalender_geocoding_provider', 'opencage'),
         'debug' => defined('JE_KALENDER_DEBUG') && JE_KALENDER_DEBUG,
+        'eventsMaxResults' => je_kalender_get_events_max_results(),
+        'eventsInitialResults' => je_kalender_get_events_initial_results(),
     ]);
 }

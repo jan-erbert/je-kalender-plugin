@@ -2,6 +2,19 @@
 
 Alle Änderungen am Plugin „JE Kalender“ werden in diesem Dokument aufgeführt.
 
+## [1.1.4] - 2026-06-09
+
+### Geändert
+
+- Google-Calendar-Proxy ruft Events jetzt paginiert über `nextPageToken` ab, damit Shortcodes mehr als eine Google-Ergebnisseite laden können.
+- Google-`nextPageToken` wird im Event-Cache gespeichert, damit groessere Eventmengen bei Bedarf fortgesetzt statt neu geladen werden.
+- Event-Cache wird kalenderbasiert wiederverwendet und nicht mehr pro `max`-Variante neu aufgebaut.
+- Standard-Cache-Dauer fuer Kalender-Events von 10 auf 30 Minuten erhoeht.
+- `max` im Shortcode kann größere Eventmengen bis zum konfigurierbaren Serverlimit abrufen.
+- Hauptkalender laedt initial eine kleinere Eventmenge und erweitert die Liste beim Weiterblaettern bis zum konfigurierbaren Serverlimit.
+- Gefilterte Kalender suchen in einem größeren Event-Pool, damit seltenere Kategorien zuverlässiger gefunden werden.
+- README um Hinweise zu `max`, Event-Cache, `JE_KALENDER_EVENTS_INITIAL_RESULTS` und `JE_KALENDER_EVENTS_MAX_RESULTS` ergänzt.
+
 ## [1.1.3] - 2026-06-09
 
 ### Hinzugefügt

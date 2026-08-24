@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Shortcode: [google_calendar max="50"]
+ * Shortcode: [google_calendar max="..."]
  * Voller Kalender mit Suche, Filter und Paginierung
  */
 function je_google_calendar_shortcode($atts)
@@ -18,18 +18,24 @@ function je_google_calendar_shortcode($atts)
         return '<p style="color:red;">⚠️ Kalender-ID fehlt!</p>';
     }
 
+    $raw_atts = is_array($atts) ? $atts : [];
     $atts = shortcode_atts([
-        'max' => 50,
-    ], $atts, 'google_calendar');
+        'max' => je_kalender_get_events_max_results(),
+    ], $raw_atts, 'google_calendar');
     $container_id = wp_unique_id('je-google-calendar-');
-    $max_results = max(1, absint($atts['max']));
+    $events_limit = je_kalender_get_events_max_results();
+    $max_results = max(1, min($events_limit, absint($atts['max'])));
+    $initial_results = isset($raw_atts['max'])
+        ? min($max_results, je_kalender_get_events_initial_results())
+        : min($events_limit, je_kalender_get_events_initial_results());
 
     ob_start();
 ?>
     <div id="<?php echo esc_attr($container_id); ?>"
         class="je-google-calendar je-kalender-container"
         data-calendar-id="<?php echo esc_attr($calendar_id); ?>"
-        data-max="<?php echo esc_attr($max_results); ?>">
+        data-max="<?php echo esc_attr($max_results); ?>"
+        data-initial="<?php echo esc_attr($initial_results); ?>">
         <p>📅 Lade Events…</p>
     </div>
 <?php

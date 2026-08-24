@@ -17,78 +17,166 @@ function je_kalender_ajax_events()
 
     $calendar_id = je_kalender_get_calendar_id();
     $api_key = je_kalender_get_api_key();
+    $events_limit = je_kalender_get_events_max_results();
     $max_results = isset($_GET['max'])
-        ? max(1, min(250, absint(wp_unslash($_GET['max']))))
+        ? max(1, min($events_limit, absint(wp_unslash($_GET['max']))))
         : 50;
 
     if (empty($calendar_id) || empty($api_key)) {
         wp_send_json_error(['message' => 'Kalender-ID oder API-Key fehlen.'], 400);
     }
 
-    $cache_key = 'je_kal_events_' . md5($calendar_id . '|' . $max_results);
-    $cached_events = get_transient($cache_key);
+    $cache_key = 'je_kal_events_' . md5($calendar_id . '|' . $events_limit);
+    $cached_payload = je_kalender_normalize_events_cache_payload(get_transient($cache_key));
 
-    if (false !== $cached_events) {
-        wp_send_json_success(['items' => $cached_events]);
+    if (
+        false !== $cached_payload
+        && !$cached_payload['complete']
+        && empty($cached_payload['next_page_token'])
+        && count($cached_payload['items']) < $max_results
+    ) {
+        $cached_payload = false;
     }
 
-    $calendar_id_for_url = rawurlencode(rawurldecode($calendar_id));
-    $url = add_query_arg(
-        [
-            'key' => $api_key,
-            'timeMin' => gmdate('Y-m-d\TH:i:s\Z'),
-            'orderBy' => 'startTime',
-            'singleEvents' => 'true',
-            'maxResults' => $max_results,
-        ],
-        'https://www.googleapis.com/calendar/v3/calendars/' . $calendar_id_for_url . '/events'
-    );
-    $response = je_kalender_remote_get($url);
+    if (
+        false !== $cached_payload
+        && ($cached_payload['complete'] || count($cached_payload['items']) >= $max_results)
+    ) {
+        wp_send_json_success([
+            'items' => array_slice($cached_payload['items'], 0, $max_results),
+            'complete' => $cached_payload['complete'],
+        ]);
+    }
 
-    if (is_wp_error($response)) {
+    $events_payload = je_kalender_fetch_calendar_events($calendar_id, $api_key, $max_results, $cached_payload);
+
+    if (is_wp_error($events_payload)) {
         wp_send_json_error(
             je_kalender_build_error_payload(
-                'Google Calendar API konnte nicht erreicht werden.',
-                ['wp_error' => $response->get_error_message()]
+                $events_payload->get_error_message(),
+                $events_payload->get_error_data()
             ),
             502
         );
     }
 
-    $status_code = wp_remote_retrieve_response_code($response);
-    $raw_body = wp_remote_retrieve_body($response);
-    $body = json_decode($raw_body, true);
+    set_transient($cache_key, $events_payload, je_kalender_get_events_cache_ttl());
 
-    if (is_array($body) && isset($body['error'])) {
-        wp_send_json_error(
-            je_kalender_build_error_payload(
+    wp_send_json_success([
+        'items' => array_slice($events_payload['items'], 0, $max_results),
+        'complete' => $events_payload['complete'],
+    ]);
+}
+
+/**
+ * Normalisiert alte und neue Event-Cache-Inhalte.
+ */
+function je_kalender_normalize_events_cache_payload($payload)
+{
+    if (false === $payload) {
+        return false;
+    }
+
+    if (is_array($payload) && isset($payload['items']) && is_array($payload['items'])) {
+        return [
+            'items' => $payload['items'],
+            'complete' => !empty($payload['complete']),
+            'next_page_token' => isset($payload['next_page_token']) ? sanitize_text_field($payload['next_page_token']) : '',
+        ];
+    }
+
+    if (is_array($payload)) {
+        return [
+            'items' => $payload,
+            'complete' => false,
+            'next_page_token' => '',
+        ];
+    }
+
+    return false;
+}
+
+/**
+ * Ruft kommende Events paginiert von Google Calendar ab.
+ */
+function je_kalender_fetch_calendar_events($calendar_id, $api_key, $max_results, $cached_payload = false)
+{
+    $calendar_id_for_url = rawurlencode(rawurldecode($calendar_id));
+    $items = false !== $cached_payload ? $cached_payload['items'] : [];
+    $page_token = false !== $cached_payload ? $cached_payload['next_page_token'] : '';
+
+    do {
+        $remaining = $max_results - count($items);
+
+        if ($remaining <= 0 || (false !== $cached_payload && empty($page_token))) {
+            break;
+        }
+
+        $page_size = min(250, $remaining);
+        $query_args = [
+            'key' => $api_key,
+            'timeMin' => gmdate('Y-m-d\TH:i:s\Z'),
+            'orderBy' => 'startTime',
+            'singleEvents' => 'true',
+            'maxResults' => $page_size,
+        ];
+
+        if ($page_token) {
+            $query_args['pageToken'] = $page_token;
+        }
+
+        $url = add_query_arg(
+            $query_args,
+            'https://www.googleapis.com/calendar/v3/calendars/' . $calendar_id_for_url . '/events'
+        );
+        $response = je_kalender_remote_get($url);
+
+        if (is_wp_error($response)) {
+            return new WP_Error(
+                'je_kalender_calendar_unreachable',
+                'Google Calendar API konnte nicht erreicht werden.',
+                ['wp_error' => $response->get_error_message()]
+            );
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        $raw_body = wp_remote_retrieve_body($response);
+        $body = json_decode($raw_body, true);
+
+        if (is_array($body) && isset($body['error'])) {
+            return new WP_Error(
+                'je_kalender_calendar_google_error',
                 je_kalender_get_google_error_message($body),
                 [
                     'status_code' => $status_code,
                     'google_error' => je_kalender_sanitize_google_error($body['error']),
                 ]
-            ),
-            502
-        );
-    }
+            );
+        }
 
-    if (200 !== $status_code || !is_array($body)) {
-        wp_send_json_error(
-            je_kalender_build_error_payload(
+        if (200 !== $status_code || !is_array($body)) {
+            return new WP_Error(
+                'je_kalender_calendar_invalid_response',
                 'Google Calendar API lieferte keine gueltige Antwort.',
                 [
                     'status_code' => $status_code,
                     'response_body' => je_kalender_sanitize_debug_body($raw_body),
                 ]
-            ),
-            502
-        );
-    }
+            );
+        }
 
-    $items = isset($body['items']) && is_array($body['items']) ? $body['items'] : [];
-    set_transient($cache_key, $items, je_kalender_get_events_cache_ttl());
+        if (!empty($body['items']) && is_array($body['items'])) {
+            $items = array_merge($items, $body['items']);
+        }
 
-    wp_send_json_success(['items' => $items]);
+        $page_token = isset($body['nextPageToken']) ? sanitize_text_field($body['nextPageToken']) : '';
+    } while ($page_token && count($items) < $max_results);
+
+    return [
+        'items' => array_slice($items, 0, $max_results),
+        'complete' => empty($page_token),
+        'next_page_token' => $page_token,
+    ];
 }
 
 /**

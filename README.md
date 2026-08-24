@@ -45,7 +45,13 @@ Ideal für Vereine, Organisationen oder Gruppen, die Veranstaltungen auf einfach
 [google_calendar]
 ```
 
-→ Zeigt alle kommenden Events, durchsuch- und filterbar
+→ Zeigt kommende Events bis zum konfigurierten Serverlimit, durchsuch- und filterbar
+
+Der Hauptkalender laedt initial nur eine begrenzte Eventmenge und erweitert den Cache beim Weiterblaettern automatisch. Die maximal ladbare Anzahl kann bei Bedarf gezielt begrenzt werden:
+
+```shortcode
+[google_calendar max="500"]
+```
 
 ### 🔹 Gefilterter Kalender (z. B. Leichtathletik)
 
@@ -70,14 +76,25 @@ Kalender- und Geocoding-Anfragen laufen über WordPress-AJAX. API Keys werden da
 
 Standard-Caches:
 
-- Kalender-Events: 10 Minuten
+- Kalender-Events: 30 Minuten
 - Geocoding-Ergebnisse: 30 Tage
+
+Der Event-Cache wird pro Kalender aufgebaut und fuer kleinere oder gleich grosse `max`-Abrufe wiederverwendet. Wenn eine groessere Eventmenge angefordert wird, kann der Cache innerhalb des Serverlimits erweitert werden.
+
+Gefilterte Kalender durchsuchen standardmaessig den konfigurierten Event-Pool und zeigen danach nur die per `max` gewuenschte Anzahl Treffer an. So koennen seltenere Kategorien wie Wettkaempfe weiter in die Zukunft gefunden werden, ohne pro Besucher neu bei Google abzufragen.
 
 Die Cache-Dauer kann bei Bedarf über Konstanten in `wp-config.php` angepasst werden:
 
 ```php
-define('JE_KALENDER_EVENTS_CACHE_TTL', 10 * MINUTE_IN_SECONDS);
+define('JE_KALENDER_EVENTS_CACHE_TTL', 30 * MINUTE_IN_SECONDS);
 define('JE_KALENDER_GEOCODING_CACHE_TTL', 30 * DAY_IN_SECONDS);
+```
+
+Die initiale Event-Anzahl fuer den Hauptkalender und die maximal abrufbare Event-Anzahl sind standardmaessig auf 150 bzw. 1000 begrenzt und koennen angepasst werden:
+
+```php
+define('JE_KALENDER_EVENTS_INITIAL_RESULTS', 150);
+define('JE_KALENDER_EVENTS_MAX_RESULTS', 1000);
 ```
 
 Für gezielte Fehlersuche kann der Debug-Modus aktiviert werden:

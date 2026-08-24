@@ -1,10 +1,10 @@
 {
   "php.validate.enable": false,
   "php.validate.executablePath": "/usr/bin/php",
-  "phpcs.executablePath": "/home/jan/Projekte/GitHub/je-kalender-plugin/vendor/bin/phpcs",
-  "phpcs.standard": "/home/jan/Projekte/GitHub/je-kalender-plugin/phpcs.xml.dist",
+  "phpcs.executablePath": "/home/jan/Projekte/Code Projekte/je-kalender-plugin/vendor/bin/phpcs",
+  "phpcs.standard": "/home/jan/Projekte/Code Projekte/je-kalender-plugin/phpcs.xml.dist",
   "intelephense.diagnostics.undefinedFunctions": false,
   "intelephense.environment.includePaths": [
-    "/home/jan/Projekte/GitHub/je-kalender-plugin/vendor/php-stubs/wordpress-stubs"
+    "/home/jan/Projekte/Code Projekte/je-kalender-plugin/vendor/php-stubs/wordpress-stubs"
   ]
 }

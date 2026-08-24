@@ -88,7 +88,27 @@ function je_kalender_get_events_cache_ttl()
 {
     return defined('JE_KALENDER_EVENTS_CACHE_TTL')
         ? absint(JE_KALENDER_EVENTS_CACHE_TTL)
-        : 10 * MINUTE_IN_SECONDS;
+        : 30 * MINUTE_IN_SECONDS;
+}
+
+/**
+ * Gibt die maximal abrufbare Event-Anzahl pro Frontend-Anfrage zurueck.
+ */
+function je_kalender_get_events_max_results()
+{
+    return defined('JE_KALENDER_EVENTS_MAX_RESULTS')
+        ? max(1, absint(JE_KALENDER_EVENTS_MAX_RESULTS))
+        : 1000;
+}
+
+/**
+ * Gibt die initiale Event-Anzahl fuer den Hauptkalender zurueck.
+ */
+function je_kalender_get_events_initial_results()
+{
+    return defined('JE_KALENDER_EVENTS_INITIAL_RESULTS')
+        ? max(1, absint(JE_KALENDER_EVENTS_INITIAL_RESULTS))
+        : 150;
 }
 
 /**
